@@ -17,8 +17,25 @@ services:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
 
+  minio_gold:
+    image: minio/minio
+    container_name: minio_gold
+    command: server /data --console-address ":9001"
+    ports:
+      - "9010:9000"  # You access API at localhost:9000
+      - "9011:9001"  # You access console at localhost:9001
+    networks:
+      - backend
+    volumes:
+      - gold-minio-data:/data # if you don't add volumes at the bottom it is a bind voume
+    
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+
 networks:
   backend:
 
 volumes:
   bronze-minio-data:  # now it it is named volume managed by docker
+  gold-minio-data:
