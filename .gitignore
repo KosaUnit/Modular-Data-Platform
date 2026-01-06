@@ -1,2 +1,13 @@
-.env/
+# Env / Credentials
+venv/
+.env
 .dockerignore
+.notes
+
+
+# data & logs
+data/
+logs/
+*.parquet
+*.csv
+*.json

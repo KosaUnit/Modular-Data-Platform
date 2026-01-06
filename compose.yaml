@@ -1,0 +1,24 @@
+name: POC-Project
+
+services:
+  minio_bronze:
+    image: minio/minio
+    container_name: minio_bronze
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"  # You access API at localhost:9000
+      - "9001:9001"  # You access console at localhost:9001
+    networks:
+      - backend
+    volumes:
+      - bronze-minio-data:/data # if you don't add volumes at the bottom it is a bind voume
+    
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+
+networks:
+  backend:
+
+volumes:
+  bronze-minio-data:  # now it it is named volume managed by docker
