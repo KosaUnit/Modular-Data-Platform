@@ -1,9 +1,9 @@
 name: POC-Project
 
 services:
-  minio_bronze:
+  minio-bronze:
     image: minio/minio
-    container_name: minio_bronze
+    container_name: minio-bronze
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"  # You access API at localhost:9000
@@ -17,9 +17,16 @@ services:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
 
-  minio_gold:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  minio-gold:
     image: minio/minio
-    container_name: minio_gold
+    container_name: minio-gold
     command: server /data --console-address ":9001"
     ports:
       - "9010:9000"  # You access API at localhost:9000
@@ -32,6 +39,21 @@ services:
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+
+  python-app:
+    build: ./python-app
+    container_name: python-app
+    env_file:
+      - .env
+    depends_on:
+      minio-bronze:
+        condition: service_healthy
+    networks:
+      - backend
+    volumes:
+      - ./python-app/Download:/app/Download
+      - ./python-app/Upload:/app/Upload
+
 
 networks:
   backend:

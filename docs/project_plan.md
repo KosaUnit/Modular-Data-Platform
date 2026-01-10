@@ -2,13 +2,13 @@ Phase 1: Core Infrastructure & Baseline Pipeline
 Goal: Establish a stable, multi-container environment where Airflow, Spark, and MinIO interact seamlessly using the S3A protocol.
 
 1.1 Environment & Service Orchestration
-[ ] Docker Network Layer: Define a dedicated bridge network for service discovery (e.g., data-platform-network).
+[x] Docker Network Layer: Define a dedicated bridge network for service discovery (e.g., data-platform-network).
 
-[ ] MinIO (Storage Layer): - [ ] Deploy MinIO container with Console enabled.
+[x] MinIO (Storage Layer): - [ ] Deploy MinIO container with Console enabled.
 
-[ ] Initialize bronze (raw) and silver (processed) buckets.
+[x] Initialize bronze (raw) and silver (processed) buckets.
 
-[ ] Configure access keys and secret keys via .env.
+[x] Configure access keys and secret keys via .env.
 
 [ ] Apache Spark (Compute Layer):
 
@@ -29,7 +29,7 @@ Goal: Establish a stable, multi-container environment where Airflow, Spark, and 
 
 [ ] Requirement: Programmatically detect/create buckets.
 
-[ ] Requirement: Upload timestamped JSON payloads to s3a://bronze/.
+[x] Requirement: Upload timestamped JSON payloads to s3a://bronze/.
 
 [ ] Dockerization: Create a standalone Dockerfile for the Ingestion service to run as a transient task.
 
