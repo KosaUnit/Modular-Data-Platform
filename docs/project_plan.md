@@ -10,13 +10,15 @@ Goal: Establish a stable, multi-container environment where Airflow, Spark, and 
 
 [x] Configure access keys and secret keys via .env.
 
-[ ] Apache Spark (Compute Layer):
+<!-- Postpone Spark - I don't need it know - use something instead. -->
 
-[ ] Deploy Spark Master node.
+<!-- [ ] Apache Spark (Compute Layer): -->
 
-[ ] Deploy 1x Spark Worker node (scalable to multi-node).
+<!-- [ ] Deploy Spark Master node. -->
 
-[ ] Provision jars/ volume to handle S3A and AWS SDK dependencies.
+<!-- [ ] Deploy 1x Spark Worker node (scalable to multi-node). -->
+
+<!-- [ ] Provision jars/ volume to handle S3A and AWS SDK dependencies. -->
 
 [ ] Apache Airflow (Orchestration Layer):
 
