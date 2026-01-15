@@ -40,9 +40,9 @@ services:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
 
-  python-app:
-    build: ./python-app
-    container_name: python-app
+  injestion-app:
+    build: ./injestion-app
+    container_name: injestion-app
     env_file:
       - .env
     depends_on:
@@ -51,8 +51,8 @@ services:
     networks:
       - backend
     volumes:
-      - ./python-app/Download:/app/Download
-      - ./python-app/Upload:/app/Upload
+      - ./injestion-app/Download:/app/Download
+      - ./injestion-app/Upload:/app/Upload
 
 
 networks:
