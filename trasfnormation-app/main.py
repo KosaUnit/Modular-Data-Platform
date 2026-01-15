@@ -16,6 +16,9 @@ client_gold = Minio(
     secure=False  # Set True if using HTTPS
 )
 
+print("Here 0")
+
+
 bronze_bucket = "bucket1"
 gold_bucket = "my-gold-bucket"
 
@@ -46,19 +49,18 @@ except Exception as e:
 # push to the gold bucket
 
 
+bronze_objects = client_bronze.list_objects(bronze_bucket)
 
+print("Here 1")
 
-# Upload file
-client_bronze.fput_object(
-    "bucket1",
-    "experiment.txt",
-    "/app/Upload/experiment.txt"
-)
-
-
-# Download file
-client_bronze.fget_object(
-    "bucket1",
-    "experiment.txt",
-    "/app/Download/new_file.txt"
-)
+for object in bronze_objects:
+    print("Here", object)
+    print("Here", object.object_name)
+    # Get data of an object.
+    try:
+        response = client_bronze.get_object(bronze_bucket, object.object_name)
+        result = client_gold.put_object(gold_bucket, object.object_name, response, object.size)#.data)
+        print("created {0} object; etag: {1}, version-id: {2}".format(result.object_name, result.etag, result.version_id,),)
+    finally:
+        response.close()
+        response.release_conn()

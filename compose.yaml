@@ -40,6 +40,13 @@ services:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
   injestion-app:
     build: ./injestion-app
     container_name: injestion-app
@@ -54,6 +61,19 @@ services:
       - ./injestion-app/Download:/app/Download
       - ./injestion-app/Upload:/app/Upload
 
+  trasfnormation-app:
+    build: ./trasfnormation-app
+    # command: tail -f /dev/null
+    container_name: trasfnormation-app
+    env_file:
+      - .env
+    depends_on:
+      minio-bronze:
+        condition: service_healthy
+      minio-gold:
+        condition: service_healthy
+    networks:
+      - backend
 
 networks:
   backend:
