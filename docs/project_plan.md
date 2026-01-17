@@ -29,16 +29,16 @@ Goal: Establish a stable, multi-container environment where Airflow, Spark, and 
 1.2 The Ingestion Pipeline (Producer)
 [ ] Ingestion Script: Develop a Python-based "Pulse" generator using boto3.
 
-[ ] Requirement: Programmatically detect/create buckets.
+[x] Requirement: Programmatically detect/create buckets.
 
 [x] Requirement: Upload timestamped JSON payloads to s3a://bronze/.
 
-[ ] Dockerization: Create a standalone Dockerfile for the Ingestion service to run as a transient task.
+[x] Dockerization: Create a standalone Dockerfile for the Ingestion service to run as a transient task.
 
 1.3 The Processing Layer (Spark Job)
-[ ] Spark-to-S3 Connectivity: - [ ] Implement SparkSession configuration for S3A endpoint (pointing to MinIO container).
+[x] Spark-to-S3 Connectivity: - [ ] Implement SparkSession configuration for S3A endpoint (pointing to MinIO container).
 
-[ ] Validate JAR compatibility (hadoop-aws and aws-java-sdk-bundle).
+<!-- [ ] Validate JAR compatibility (hadoop-aws and aws-java-sdk-bundle). -->
 
 [ ] ETL Logic: - [ ] Read raw JSON from bronze.
 
