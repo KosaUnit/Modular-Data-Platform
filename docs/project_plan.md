@@ -1,76 +1,220 @@
-Phase 1: Core Infrastructure & Baseline Pipeline
-Goal: Establish a stable, multi-container environment where Airflow, Spark, and MinIO interact seamlessly using the S3A protocol.
+# Project Plan — Telecom Network Event Pipeline
+
+Phase 1: Core Infrastructure & Local Streaming Baseline  
+Goal: Establish a stable, fully dockerized environment where Kafka, Airflow, Spark, and MinIO interact reliably and can process simulated telecom events end-to-end into the Bronze layer.
 
 1.1 Environment & Service Orchestration
-[x] Docker Network Layer: Define a dedicated bridge network for service discovery (e.g., data-platform-network).
 
-[x] MinIO (Storage Layer): - [ ] Deploy MinIO container with Console enabled.
+[x] Docker Network Layer  
+- Dedicated bridge network for service discovery (e.g., telecom-data-platform).
 
-[x] Initialize bronze (raw) and silver (processed) buckets.
+[x] MinIO (Storage Layer)  
+- [x] Deploy MinIO container with Console enabled.  
+- [x] Initialize bronze and gold buckets.  
+- [x] Configure access keys and secret keys via `.env`.
 
-[x] Configure access keys and secret keys via .env.
+[x] Reuse Existing Development Base  
+- [x] Reuse preconfigured MinIO access patterns.  
+- [x] Reuse existing S3A connectivity configuration approach.  
+- [x] Reuse container structure and environment variable conventions.
 
-<!-- Postpone Spark - I don't need it know - use something instead. -->
+[ ] Kafka (Streaming Layer)  
+- [ ] Deploy single-node Kafka (KRaft mode, no ZooKeeper).  
+- [ ] Define telecom.events topic with low partition count (e.g., 3).  
+- [ ] Configure internal and external listeners for Docker network.
 
-<!-- [ ] Apache Spark (Compute Layer): -->
+[ ] Apache Airflow (Orchestration Layer)  
+- [ ] Deploy Airflow Webserver, Scheduler, and Postgres backend.  
+- [ ] Map local volumes for `/dags`, `/logs`, `/plugins`, `/scripts`.  
+- [ ] Configure Airflow executor (LocalExecutor recommended for start).
 
-<!-- [ ] Deploy Spark Master node. -->
+[ ] Apache Spark (Compute Layer)  
+- [ ] Deploy Spark container (single-node for local development).  
+- [ ] Provision JARs for:
+  - Kafka connector  
+  - Hadoop AWS (S3A)  
+- [ ] Externalize Spark configuration via environment variables.
 
-<!-- [ ] Deploy 1x Spark Worker node (scalable to multi-node). -->
+---
 
-<!-- [ ] Provision jars/ volume to handle S3A and AWS SDK dependencies. -->
+1.2 Event Ingestion (Telecom Event Generator → Kafka)
 
-[ ] Apache Airflow (Orchestration Layer):
+[ ] Event Generator Service (Python)  
+- [ ] Implement 4 telecom event types:
+  - call_detail  
+  - data_session  
+  - handover  
+  - tower_health  
+- [ ] Configurable event rate (events/sec).  
+- [ ] Incident simulation mode (tower or region degradation).  
+- [ ] Deterministic randomness via seed (for reproducibility).
 
-[ ] Deploy Airflow Webserver, Scheduler, and Postgres backend.
+[ ] Kafka Producer Logic  
+- [ ] JSON schema enforcement.  
+- [ ] Event key strategy (e.g., tower_id for partitioning).  
+- [ ] Delivery confirmation handling.
 
-[ ] Map local volumes for /dags, /logs, and /scripts.
+[ ] Dockerization  
+- [ ] Standalone Dockerfile for generator service.  
+- [ ] Runtime configuration via environment variables.
 
-1.2 The Ingestion Pipeline (Producer)
-[ ] Ingestion Script: Develop a Python-based "Pulse" generator using boto3.
+[ ] Validation  
+- [ ] Produce events and verify consumption via Kafka CLI or Kafka UI.  
+- [ ] Confirm realistic event distribution and incident spikes.
 
-[x] Requirement: Programmatically detect/create buckets.
+---
 
-[x] Requirement: Upload timestamped JSON payloads to s3a://bronze/.
+1.3 Bronze Ingestion — Spark Job #1 (Kafka → MinIO)
 
-[x] Dockerization: Create a standalone Dockerfile for the Ingestion service to run as a transient task.
+[x] Spark-to-S3A Connectivity (Reused Pattern)  
+- [x] Implement SparkSession S3A configuration for MinIO endpoint.  
+- [x] Validate credential resolution via environment variables.
 
-1.3 The Processing Layer (Spark Job)
-[x] Spark-to-S3 Connectivity: - [ ] Implement SparkSession configuration for S3A endpoint (pointing to MinIO container).
+[ ] Kafka Read Logic  
+- [ ] Read from telecom.events topic.  
+- [ ] Parse JSON and enforce schema.  
+- [ ] Add ingestion metadata columns:
+  - ingest_time  
+  - batch_id or processing_time
 
-<!-- [ ] Validate JAR compatibility (hadoop-aws and aws-java-sdk-bundle). -->
+[ ] Bronze Write Logic  
+- [ ] Write Parquet to `s3a://bronze/events/`.  
+- [ ] Partition by:
+  - event_date  
+  - event_type  
+- [ ] Implement idempotency strategy:
+  - offset tracking OR event_id deduplication.
 
-[ ] ETL Logic: - [ ] Read raw JSON from bronze.
+[ ] Orchestration via Airflow DAG  
+- [ ] Define Airflow connections:
+  - spark_default  
+  - aws_default (MinIO)  
+- [ ] DAG task: SparkSubmitOperator for Bronze ingestion.  
+- [ ] Schedule interval:
+  - 1–5 minutes (configurable).
 
-[ ] Enforce schema and apply "Processed At" metadata columns.
+[ ] End-to-End Validation  
+- [ ] Execute DAG.  
+- [ ] Verify new Parquet files in Bronze.  
+- [ ] Confirm no duplicate ingestion on rerun.
 
-[ ] Write optimized Parquet output to s3a://silver/.
+---
 
-1.4 Orchestration & Automation (DAG)
-[ ] Airflow Connections: Define spark_default and aws_default (MinIO) connections in the Airflow UI.
+Phase 2: Gold Aggregation Layer & Serving Readiness  
+Goal: Transform Bronze data into aggregated KPI datasets and make them queryable for dashboards.
 
-[ ] DAG Design:
+2.1 Gold Layer — Spark Job #2
 
-[ ] Task 1: Run Ingestion Container.
+[ ] Aggregation Logic  
+- [ ] Compute windowed KPIs:
+  - call drop rate  
+  - call failure rate  
+  - handover failure rate  
+  - average & p95 latency  
+  - active connection averages  
+- [ ] Aggregation levels:
+  - tower (15 min window)  
+  - region (hourly)
 
-[ ] Task 2: S3KeySensor to verify data arrival in bronze.
+[ ] Gold Storage  
+- [ ] Write Parquet to `s3a://gold/kpis/`.  
+- [ ] Partition by date/hour.
 
-[ ] Task 3: SparkSubmitOperator to trigger processing job.
+[ ] Orchestration  
+- [ ] Airflow DAG task for Gold job.  
+- [ ] Schedule interval:
+  - every 15 minutes OR hourly.
 
-[ ] End-to-End Validation: Execute full DAG and verify Parquet file existence in MinIO.
+[ ] Validation  
+- [ ] Confirm Gold datasets update incrementally.  
+- [ ] Validate metric correctness against Bronze samples.
 
-Phase 2: System Hardening & Real-World Ingestion
-Note: Details to be refined after Phase 1 completion.
+---
 
-[ ] Medallion Architecture: Implement a gold layer for aggregated/analytical views.
+2.2 Serving Layer for Grafana
 
-[ ] Real-World Scraper: Replace synthetic "Pulse" generator with a modular web-scraping service (BeautifulSoup/Selenium).
+[ ] Postgres Serving Database (Recommended First Step)  
+- [ ] Deploy Postgres container.  
+- [ ] Gold job writes aggregated tables to Postgres.  
+- [ ] Define upsert strategy.
 
-[ ] Schema Evolution: Integrate Apache Iceberg or Delta Lake for ACID transactions on S3.
+[ ] Grafana  
+- [ ] Deploy Grafana container.  
+- [ ] Provision Postgres datasource.  
+- [ ] Create dashboards:
+  - Network health overview  
+  - Top failing towers  
+  - Failure/drop rate over time  
+  - Pipeline ingestion lag (basic)
 
-Phase 3: Observability & Serving
-[ ] Data Quality: Integrate Great Expectations as a validation step between Bronze and Silver layers.
+---
 
-[ ] Visualization Layer: Connect a BI tool (Metabase/Superset) or a Streamlit app to the silver/gold Parquet files.
+Phase 3: CI/CD & System Hardening  
+Goal: Ensure reproducibility, code quality, and automated validation.
 
-[ ] Monitoring: Implement Airflow Callback alerts for pipeline failures.
+3.1 CI/CD (GitHub Actions)
+
+[ ] Linting & Formatting  
+- [ ] ruff  
+- [ ] black
+
+[ ] Testing  
+- [ ] Unit tests for event generator.  
+- [ ] Schema validation tests.
+
+[ ] Docker Build Pipeline  
+- [ ] Build all service images.  
+- [ ] Compose smoke test:
+  - Start Kafka  
+  - Run generator briefly  
+  - Validate topic contains messages.
+
+[ ] PR Quality Gates  
+- [ ] Block merge on failed checks.
+
+---
+
+3.2 Data Reliability
+
+[ ] Dead Letter Strategy  
+- [ ] Route malformed events to DLQ topic or storage path.
+
+[ ] Data Quality Checks (later integration point)  
+- [ ] Validate required fields in Bronze.  
+- [ ] Basic completeness checks per batch.
+
+---
+
+Phase 4: Observability & Monitoring  
+Goal: Gain operational visibility into pipeline and infrastructure health.
+
+[ ] Structured Logging  
+- [ ] JSON logs for all services.
+
+[ ] Prometheus Stack  
+- [ ] Deploy Prometheus.  
+- [ ] Kafka exporter.  
+- [ ] JVM/Spark metrics.  
+- [ ] Airflow metrics.
+
+[ ] Grafana Infrastructure Dashboards  
+- [ ] Kafka lag  
+- [ ] Spark job duration  
+- [ ] Airflow DAG status  
+- [ ] MinIO storage usage
+
+[ ] Alerting  
+- [ ] Airflow task failure callbacks.  
+- [ ] Lag threshold alerts.
+
+---
+
+Phase 5: Cloud Migration Path (MinIO → AWS S3)
+
+Goal: Make storage backend swappable without code changes.
+
+[ ] Externalize storage configuration.  
+[ ] Parameterize bucket names and endpoints.  
+[ ] Validate Spark jobs against AWS S3.  
+[ ] Optional: deploy pipeline on EC2.
+
