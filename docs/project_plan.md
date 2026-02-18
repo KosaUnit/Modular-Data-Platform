@@ -19,7 +19,7 @@ Goal: Establish a stable, fully dockerized environment where Kafka, Airflow, Spa
 - [x] Reuse container structure and environment variable conventions.
 
 [ ] Kafka (Streaming Layer)  
-- [ ] Deploy single-node Kafka (KRaft mode, no ZooKeeper).  
+- [x] Deploy single-node Kafka (KRaft mode, no ZooKeeper).  
 - [ ] Define telecom.events topic with low partition count (e.g., 3).  
 - [ ] Configure internal and external listeners for Docker network.
 
