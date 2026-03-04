@@ -1,6 +1,5 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, count, broadcast
-import time
 
 spark = SparkSession.builder \
     .appName("Level2_BasicTest") \
@@ -29,14 +28,12 @@ result.show()
 
 print("\n>>> SLEEPING 60s — explore Stage 1 in the UI now")
 print(">>> http://localhost:4040/stages/")
-time.sleep(60)  # ← You now have 60 seconds to look at the completed Stage 1
 
 print("\n>>> STAGE 2 starting — simple count")
 total = df.count()
 print(f"Total: {total:,}")
 
 print("\n>>> SLEEPING 60s — explore Stage 2 in the UI now")
-time.sleep(60)
 
 print("\n>>> STAGE 3 starting — broadcast join")
 customers = spark.createDataFrame(
@@ -46,7 +43,6 @@ joined = df.join(broadcast(customers), "category")
 print(f"Joined rows: {joined.count():,}")
 
 print("\n>>> SLEEPING 60s — explore Stage 3 (broadcast join) in the UI")
-time.sleep(60)
 
 spark.stop()
 print("Done.")
