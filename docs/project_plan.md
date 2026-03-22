@@ -18,36 +18,40 @@ Goal: Establish a stable, fully dockerized environment where Kafka, Airflow, Spa
 - [x] Reuse existing S3A connectivity configuration approach.  
 - [x] Reuse container structure and environment variable conventions.
 
-[ ] Kafka (Streaming Layer)  
+[x] Kafka (Streaming Layer)  
 - [x] Deploy single-node Kafka (KRaft mode, no ZooKeeper).  
-- [ ] Define telecom.events topic with low partition count (e.g., 3).  
-- [ ] Configure internal and external listeners for Docker network.
+- [x] Extend single-node Kafka to 3-node Kafka.  
+- [x] Validate and document Kafka connection configuration (listeners, advertised.listeners, security protocol, ports).  
+- [x] Define and verify topic management strategy (creation policy, replication factor, partitioning) and client interaction model (producer, consumer, and cluster connectivity).  
+- [x] Define telecom.events topic with low partition count (e.g., 3).  
+- [x] Configure internal and external listeners for Docker network.
 
-[ ] Apache Airflow (Orchestration Layer)  
-- [ ] Deploy Airflow Webserver, Scheduler, and Postgres backend.  
-- [ ] Map local volumes for `/dags`, `/logs`, `/plugins`, `/scripts`.  
-- [ ] Configure Airflow executor (LocalExecutor recommended for start).
+[x] Apache Airflow (Orchestration Layer)  
+- [x] Deploy Airflow Webserver, Scheduler, and Postgres backend.  
+- [x] Map local volumes for `/dags`, `/logs`, `/plugins`, `/scripts`.  
+- [x] Configure Airflow executor (LocalExecutor recommended for start).
 
-[ ] Apache Spark (Compute Layer)  
-- [ ] Deploy Spark container (single-node for local development).  
-- [ ] Provision JARs for:
+[x] Apache Spark (Compute Layer)  
+- [x] Deploy Spark container (single-node for local development).  
+- [x] Provision JARs for:
   - Kafka connector  
   - Hadoop AWS (S3A)  
-- [ ] Externalize Spark configuration via environment variables.
+- [x] Externalize Spark configuration via environment variables.
+- [x] Spark Deployment Model
 
 ---
 
 1.2 Event Ingestion (Telecom Event Generator → Kafka)
 
-[ ] Event Generator Service (Python)  
-- [ ] Implement 4 telecom event types:
+[x] Event Generator Service (Python)  
+- [x] Implement 4 telecom event types:
   - call_detail  
   - data_session  
   - handover  
   - tower_health  
-- [ ] Configurable event rate (events/sec).  
-- [ ] Incident simulation mode (tower or region degradation).  
-- [ ] Deterministic randomness via seed (for reproducibility).
+- [x] Configurable event rate (events/sec).  
+- [x] Incident simulation mode (tower or region degradation).  
+- [x] Deterministic randomness via seed (for reproducibility).
 
 [ ] Kafka Producer Logic  
 - [ ] JSON schema enforcement.  
