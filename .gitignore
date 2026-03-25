@@ -11,3 +11,9 @@ logs/
 *.parquet
 *.csv
 *.json
+
+
+# Ignore all files in these directories
+airflow/logs/**/*
+airflow/config/*
+airflow/dags/__pycache__/
