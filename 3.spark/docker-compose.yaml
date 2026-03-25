@@ -1,0 +1,77 @@
+# https://downloads.apache.org/spark/docs/3.5.0/spark-standalone.html#cluster-launch-scripts
+
+services:
+  spark-master:
+    image: apache/spark
+    container_name: spark-master
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    user: "${UID}:${GID}" # allow access spark-events
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+      - "4040:4040"
+    environment:
+      # - SPARK_NO_DAEMONIZE=true           # Required for official Apache images
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=/opt/spark-events # History
+
+    volumes:
+      - ./src:/opt/src            # Bind mount: your scripts are available inside
+      - ./data:/opt/data            # Bind mount: your data files are available inside
+      - ./spark-events:/opt/spark-events    # history
+      # - spark-events:/opt/spark/events    # Shared event log volume
+
+
+  spark-worker-1:
+    image: apache/spark
+    container_name: spark-worker-1
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    ports:
+      - "8081:8081"
+    environment:
+      - SPARK_WORKER_CORES=2          # how many CPU cores this worker offers
+      - SPARK_WORKER_MEMORY=2g        # how much RAM this worker offers
+      - SPARK_WORKER_WEBUI_PORT=8081  # this worker's Web UI
+      # - SPARK_NO_DAEMONIZE=true
+    volumes:
+      # - ./apps:/opt/spark/apps            # Bind mount: your scripts are available inside
+      - ./data:/opt/data            # Bind mount: your data files are available inside
+    depends_on:
+      - spark-master
+      
+  spark-worker-2:
+    image: apache/spark
+    container_name: spark-worker-2
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    ports:
+      - "8082:8082"
+    environment:
+      - SPARK_WORKER_CORES=2          # how many CPU cores this worker offers
+      - SPARK_WORKER_MEMORY=2g        # how much RAM this worker offers
+      - SPARK_WORKER_WEBUI_PORT=8082  # this worker's Web UI
+      # - SPARK_NO_DAEMONIZE=true
+    volumes:
+      # - ./apps:/opt/spark/apps            # Bind mount: your scripts are available inside
+      - ./data:/opt/data            # Bind mount: your data files are available inside
+    depends_on:
+      - spark-master
+
+
+  spark-history-server:
+    image: apache/spark
+    container_name: spark-history-server
+    hostname: spark-history-server
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
+    user: "${UID}:${GID}" # allow access spark-events
+    ports:
+      - "18080:18080"         # History Server UI — your permanent job inspector
+    environment:
+      - SPARK_NO_DAEMONIZE=true
+      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=/opt/spark-events
+    volumes:
+      - ./spark-events:/opt/spark-events    # Shared volume with master
+    depends_on:
+      - spark-master
+
